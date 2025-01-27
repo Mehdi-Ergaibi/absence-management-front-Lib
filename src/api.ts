@@ -16,13 +16,17 @@ async function fetchWithAuth(
 ): Promise<Response> {
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
-    "Content-Type": "application/json",
+    //"Content-Type": "application/json",
   };
 
   if (authToken) {
     headers["Authorization"] = `Bearer ${authToken}`;
   }
-
+  if (options.body instanceof FormData) {
+    delete headers["Content-Type"];
+  } else {
+    headers["Content-Type"] = "application/json";
+  }
   return fetch(url, { ...options, headers });
 }
 
