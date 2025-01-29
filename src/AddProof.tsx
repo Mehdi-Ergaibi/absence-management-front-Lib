@@ -22,6 +22,8 @@ import {
 } from "./components/ui/form";
 import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
+import { MdCheckCircle } from "react-icons/md";
+import { toast } from "./hooks/use-toast";
 
 export interface FetchedAbsencs {
   elementName: string;
@@ -72,13 +74,34 @@ function AddProof() {
   const getAbsences = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cne) {
-      alert("Cne is required");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="red" />
+            Cne est obligatoire
+          </div>
+        ),
+        className: "bg-red-500 text-white",
+      });
       return;
     }
     try {
       const absences = await getAbsenceByStudentCne(cne);
       setFetchedAbsences(absences);
     } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="red" />
+            {String(error)}
+          </div>
+        ),
+        className: "bg-red-500 text-white",
+      });
       console.error("Error while fetching absences: ", error);
     }
   };
@@ -90,25 +113,61 @@ function AddProof() {
 
   const handleSubmitProof = async () => {
     if (!selectedAbsence || !motif || !justificatif) {
-      alert("Motif and justificatif are required.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="red" />
+            Motif et justificatif sont obligatoires.                                       
+          </div>
+        ),
+        className: "bg-red-500 text-white",
+      });
       return;
     }
 
     try {
-      const result = await uploadProof(
-        selectedAbsence.abscenceId,
-        motif,
-        justificatif
-      );
-      alert(result); // Show success message
+      await uploadProof(selectedAbsence.abscenceId, motif, justificatif);
+      toast({
+        variant: "default", // Default variant for non-destructive toasts
+        title: "Success",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="green" />
+            Justificatif bien enrigistre
+          </div>
+        ),
+        className: "bg-green-500 text-white", // Custom styles
+      });
       setShowPopup(false); // Close popup after successful upload
       setMotif("");
       setJustificatif(null);
     } catch (error) {
       if (error instanceof Error) {
-        alert("Error uploading proof: " + error.message);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: (
+            <div className="flex items-center gap-2">
+              <MdCheckCircle color="red" />
+              {error.message}
+            </div>
+          ),
+          className: "bg-red-500 text-white",
+        });
       } else {
-        alert("An unknown error occurred.");
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: (
+            <div className="flex items-center gap-2">
+              <MdCheckCircle color="red" />
+              Error inconnue
+            </div>
+          ),
+          className: "bg-red-500 text-white",
+        });
       }
     }
   };
@@ -146,40 +205,38 @@ function AddProof() {
       </Card>
 
       <div className="overflow-x-auto col-span-6 m-auto">
-        
-
         {fetchedAbsences.length != 0 && (
-<div>
-          <Input
-          type="text"
-          placeholder="Rechercher par élément"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="mb-2"
-        />
-
-          <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg">
-            <thead className="bg-gray-200">
-              <th className="px-4 py-2 border">Element</th>
-              <th className="px-4 py-2 border">De</th>
-              <th className="px-4 py-2 border">A</th>
-              <th className="px-4 py-2 border">Date</th>
-            </thead>
-            <tbody>
-              {filteredAbsences.map((abs) => (
-                <tr
-                  key={abs.abscenceId}
-                  onClick={() => handleRowClick(abs)}
-                  className="hover:bg-gray-100 cursor-pointer"
-                >
-                  <td className="px-4 py-2 border">{abs.elementName}</td>
-                  <td className="px-4 py-2 border">{abs.startTime}</td>
-                  <td className="px-4 py-2 border">{abs.endTime}</td>
-                  <td className="px-4 py-2 border">{abs.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table> </div>
+          <div>
+            <Input
+              type="text"
+              placeholder="Rechercher par élément"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="mb-2"
+            />
+            <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg">
+              <thead className="bg-gray-200">
+                <th className="px-4 py-2 border">Element</th>
+                <th className="px-4 py-2 border">De</th>
+                <th className="px-4 py-2 border">A</th>
+                <th className="px-4 py-2 border">Date</th>
+              </thead>
+              <tbody>
+                {filteredAbsences.map((abs) => (
+                  <tr
+                    key={abs.abscenceId}
+                    onClick={() => handleRowClick(abs)}
+                    className="hover:bg-gray-100 cursor-pointer"
+                  >
+                    <td className="px-4 py-2 border">{abs.elementName}</td>
+                    <td className="px-4 py-2 border">{abs.startTime}</td>
+                    <td className="px-4 py-2 border">{abs.endTime}</td>
+                    <td className="px-4 py-2 border">{abs.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>{" "}
+          </div>
         )}
       </div>
 
@@ -273,8 +330,10 @@ function AddProof() {
           </label>
           <br /> */}
           <CardFooter>
-            <Button onClick={handleSubmitProof}>Submit</Button>
-            <Button onClick={() => setShowPopup(false)}>Close</Button>
+            <Button onClick={handleSubmitProof} className="mr-2">
+              Ajouter
+            </Button>
+            <Button onClick={() => setShowPopup(false)}>Fermer</Button>
           </CardFooter>
         </Card>
       )}

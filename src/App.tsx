@@ -6,6 +6,10 @@ import BilanForm from "./BilanForm";
 import Login from "./Login";
 import Register from "./Register";
 import PrivateRoute from "./PrivateRoute";
+import Navbar from "./NavBar";
+import Home from "./Home";
+import { Toaster } from "@/components/ui/toaster";
+
 /* import { useContext } from "react";
 import AuthContext from "./context/AuthContext"; */
 
@@ -17,7 +21,9 @@ function App() {
       <button onClick={logout}>Logout</button> */}
 
       <Router>
+        <Navbar />
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route element={<PrivateRoute />}>
@@ -26,6 +32,7 @@ function App() {
             <Route path="/bilan" element={<BilanForm />} />
           </Route>
         </Routes>
+        <Toaster />
       </Router>
     </>
   );

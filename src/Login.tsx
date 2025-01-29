@@ -12,24 +12,34 @@ import {
 import { Button } from "./components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MdCheckCircle } from "react-icons/md";
+import { toast } from "./hooks/use-toast";
 
 const Login = () => {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     try {
       const token = await login(username, password);
       //console.log('JWT Token:', token);
       localStorage.setItem("jwt", token);
       navigate("/add-absence");
     } catch (err) {
-      setError("Login failed try again.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="red" />
+            Authentification echouer.
+          </div>
+        ),
+        className: "bg-red-500 text-white",
+      });
       console.error("Login Error:", err);
     }
   };
@@ -64,12 +74,14 @@ const Login = () => {
               required
             />
           </div>
-          {error && <p className="error-message">{error}</p>}
         </CardContent>
         <CardFooter>
           <Button onClick={handleSubmit}>Login</Button>
           <p className="text-xl text-muted-foreground ml-2">
-            pas de profile? <a href="/register" className="underline">Register</a>
+            pas de profile?{" "}
+            <a href="/register" className="underline">
+              Register
+            </a>
           </p>
         </CardFooter>
       </Card>

@@ -38,6 +38,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { toast } from "@/hooks/use-toast";
+import { MdCheckCircle } from "react-icons/md";
+
 interface StudentBilan {
   cne: string;
   name: string;
@@ -71,6 +74,17 @@ function BilanForm() {
         console.log(fetchedFilieres);
         setFilieres(fetchedFilieres);
       } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: (
+            <div className="flex items-center gap-2">
+              <MdCheckCircle color="red" />
+              {String(error)}
+            </div>
+          ),
+          className: "bg-red-500 text-white",
+        })
         console.error("Error fetching filieres:", error);
       }
     };
@@ -88,6 +102,17 @@ function BilanForm() {
         );
         setStudents(fetchedStudents);
       } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: (
+            <div className="flex items-center gap-2">
+              <MdCheckCircle color="red" />
+              {String(error)}
+            </div>
+          ),
+          className: "bg-red-500 text-white",
+        })
         console.error("Error fetching filieres:", error);
       }
     };

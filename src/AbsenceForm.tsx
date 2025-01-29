@@ -46,6 +46,9 @@ import {
   FormMessage,
 } from "./components/ui/form";
 
+import { useToast } from "@/hooks/use-toast";
+import { MdCheckCircle } from "react-icons/md";
+
 const formSchema = z.object({
   date: z.coerce.date(),
   startTime: z.string(),
@@ -80,6 +83,8 @@ function AbsenceForm() {
 
   const [searchTerm, setSearchTerm] = useState<string>("");
 
+  const { toast } = useToast();
+
   /* const [open, setOpen] = useState(false);
   const [openFilieres, setOpenFiliere] = useState(false);
   const [openModule, setOpenModule] = useState(false);
@@ -98,6 +103,17 @@ function AbsenceForm() {
         const fetchedFilieres = await getFiliers();
         setFilieres(fetchedFilieres);
       } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: (
+            <div className="flex items-center gap-2">
+              <MdCheckCircle color="red" />
+              {String(error)}
+            </div>
+          ),
+          className: "bg-red-500 text-white",
+        });
         console.error("Error fetching filieres:", error);
       }
     };
@@ -113,6 +129,17 @@ function AbsenceForm() {
           const fetchedElements = await getElementsByModule(selectedModule);
           setElements(fetchedElements);
         } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: (
+              <div className="flex items-center gap-2">
+                <MdCheckCircle color="red" />
+                {String(error)}
+              </div>
+            ),
+            className: "bg-red-500 text-white",
+          });
           console.error("Error fetching elements:", error);
         }
       };
@@ -139,6 +166,17 @@ function AbsenceForm() {
           console.log(fetchedStudents);
           setStudents(fetchedStudents);
         } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: (
+              <div className="flex items-center gap-2">
+                <MdCheckCircle color="red" />
+                {String(error)}
+              </div>
+            ),
+            className: "bg-red-500 text-white",
+          });
           console.error("Error fetching students:", error);
           setStudents([]);
         }
@@ -161,6 +199,17 @@ function AbsenceForm() {
           setModules(fetchedModules);
           setSelectedModule(""); // Reset module
         } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: (
+              <div className="flex items-center gap-2">
+                <MdCheckCircle color="red" />
+                {String(error)}
+              </div>
+            ),
+            className: "bg-red-500 text-white",
+          });
           console.error("Error fetching modules:", error);
           setModules([]);
         }
@@ -180,6 +229,17 @@ function AbsenceForm() {
           const fetchedElementId = await getElementIdByName(selectedElement);
           setElementId(fetchedElementId);
         } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: (
+              <div className="flex items-center gap-2">
+                <MdCheckCircle color="red" />
+                {String(error)}
+              </div>
+            ),
+            className: "bg-red-500 text-white",
+          });
           console.error("Error fetching Element ID:", error);
           setElementId(null);
         }
@@ -208,17 +268,47 @@ function AbsenceForm() {
     console.log(date, startTime, endTime, selectedStudents);
 
     if (!date || !startTime || !endTime || selectedStudents.length === 0) {
-      alert("Tous les champs doivent être remplis");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="red" />
+            Tous les champs doivent être remplis
+          </div>
+        ),
+        className: "bg-red-500 text-white",
+      });
       return;
     }
 
     if (startTime >= endTime) {
-      alert("L'heure de début doit être inférieure à l'heure de fin");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="red" />
+            L'heure de début doit être inférieure à l'heure de fin
+          </div>
+        ),
+        className: "bg-red-500 text-white",
+      });
       return;
     }
 
     if (!elementId) {
-      alert("Veuillez sélectionner un élément valide.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="red" />
+            Veuillez sélectionner un élément valide.
+          </div>
+        ),
+        className: "bg-red-500 text-white",
+      });
       return;
     }
 
@@ -234,7 +324,18 @@ function AbsenceForm() {
 
     try {
       await addAbsence(absences);
-      alert("Absence(s) ajoutée(s) avec succès !");
+      toast({
+        variant: "default",
+        title: "Succès",
+        description: (
+          <div className="flex items-center gap-2">
+            <MdCheckCircle color="green" />
+            Absence(s) ajoutée(s) avec succès !
+          </div>
+        ),
+        className: "bg-green-500 text-white",
+      });
+      //alert("Absence(s) ajoutée(s) avec succès !");
       setDate("");
       setStartTime("");
       setEndTime("");
