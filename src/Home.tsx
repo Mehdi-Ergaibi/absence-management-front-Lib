@@ -33,6 +33,9 @@ const Home = () => {
               <button className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-blue-900 px-8 py-4 rounded-lg font-semibold hover:scale-105 transition-transform duration-300">
                 <Link to="/add-absence">Commencer</Link>
               </button>
+              <button className="bg-gradient-to-r from-yellow-400 to-yellow-300 text-blue-900 px-8 py-4 rounded-lg font-semibold hover:scale-105 transition-transform duration-300">
+                <Link to="/voir-absence">Voir mes abscences</Link>
+              </button>
             </div>
           </div>
         </div>

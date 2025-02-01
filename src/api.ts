@@ -214,3 +214,33 @@ export const login = async (
   setAuthToken(token); // Store token after login
   return token;
 };
+
+export async function getAbsencesByStudent(cne : string) {
+  const response = await fetchWithAuth(`${lhost}/api/student/${cne}`);
+  if (!response.ok) throw new Error("Failed to fetch absences");
+  return response.json();
+}
+
+export async function getTotalDurationByElement(cne: string, elementId : string) {
+  const response = await fetchWithAuth(`${lhost}/api/absences/element/${cne}/${elementId}`);
+  if (!response.ok) throw new Error("Failed to fetch element duration");
+  return response.json();
+}
+
+export async function getTotalDurationByModule(cne: string, moduleId: string) {
+  const response = await fetchWithAuth(`${lhost}/api/absences/module/${cne}/${moduleId}`);
+  if (!response.ok) throw new Error("Failed to fetch module duration");
+  return response.json();
+}
+
+export async function getExamStatusByElement(cne:string, elementId: string) {
+  const response = await fetchWithAuth(`${lhost}/api/absences/element-exam-status/${cne}/${elementId}`);
+  if (!response.ok) throw new Error("Failed to fetch exam status");
+  return response.text();
+}
+
+export async function getExamStatusByModule(cne: string, moduleId: string) {
+  const response = await fetchWithAuth(`${lhost}/api/absences/module-exam-status/${cne}/${moduleId}`);
+  if (!response.ok) throw new Error("Failed to fetch exam status");
+  return response.text();
+}
