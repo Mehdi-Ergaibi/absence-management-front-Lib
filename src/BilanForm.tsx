@@ -40,6 +40,7 @@ import {
 
 import { toast } from "@/hooks/use-toast";
 import { MdCheckCircle } from "react-icons/md";
+import * as XLSX from "xlsx";
 
 interface StudentBilan {
   cne: string;
@@ -84,7 +85,7 @@ function BilanForm() {
             </div>
           ),
           className: "bg-red-500 text-white",
-        })
+        });
         console.error("Error fetching filieres:", error);
       }
     };
@@ -112,7 +113,7 @@ function BilanForm() {
             </div>
           ),
           className: "bg-red-500 text-white",
-        })
+        });
         console.error("Error fetching filieres:", error);
       }
     };
@@ -126,7 +127,24 @@ function BilanForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      afficherPar: "element",
+    },
   });
+
+  const exportToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(
+      students.map((s) => ({
+        CNE: s.cne,
+        Nom: s.name,
+        "Heures d'absence": `${s.totalDuration} H`,
+        [type]: s.elementOrModuleName,
+      }))
+    );
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Absences");
+    XLSX.writeFile(wb, "absences.xlsx");
+  };
 
   return (
     <div className=" mt-10 grid grid-cols-12">
@@ -358,6 +376,12 @@ function BilanForm() {
       </form> */}
       {students.length != 0 && (
         <div className="overflow-x-auto col-span-6 m-auto">
+          <Button
+            onClick={exportToExcel}
+            className="mb-4 px-4 py-2 text-white rounded"
+          >
+            Exporter vers Excel
+          </Button>
           <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg">
             {/*         CNE, nom, heures d'abscence, elemet/module
              */}{" "}

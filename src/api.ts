@@ -215,32 +215,56 @@ export const login = async (
   return token;
 };
 
-export async function getAbsencesByStudent(cne : string) {
-  const response = await fetchWithAuth(`${lhost}/api/student/${cne}`);
+export async function getAbsencesByStudent(cne: string) {
+  const response = await fetchWithAuth(`${lhost}/api/absences/student/${cne}`);
   if (!response.ok) throw new Error("Failed to fetch absences");
   return response.json();
 }
 
-export async function getTotalDurationByElement(cne: string, elementId : string) {
-  const response = await fetchWithAuth(`${lhost}/api/absences/element/${cne}/${elementId}`);
+export async function getTotalDurationByElement(
+  cne: string,
+  elementId: string
+) {
+  const response = await fetchWithAuth(
+    `${lhost}/api/absences/element/${cne}/${elementId}`
+  );
   if (!response.ok) throw new Error("Failed to fetch element duration");
   return response.json();
 }
 
 export async function getTotalDurationByModule(cne: string, moduleId: string) {
-  const response = await fetchWithAuth(`${lhost}/api/absences/module/${cne}/${moduleId}`);
+  const response = await fetchWithAuth(
+    `${lhost}/api/absences/module/${cne}/${moduleId}`
+  );
   if (!response.ok) throw new Error("Failed to fetch module duration");
   return response.json();
 }
 
-export async function getExamStatusByElement(cne:string, elementId: string) {
-  const response = await fetchWithAuth(`${lhost}/api/absences/element-exam-status/${cne}/${elementId}`);
+export async function getExamStatusByElement(cne: string, elementId: string) {
+  const response = await fetchWithAuth(
+    `${lhost}/api/absences/element-exam-status/${cne}/${elementId}`
+  );
   if (!response.ok) throw new Error("Failed to fetch exam status");
   return response.text();
 }
 
 export async function getExamStatusByModule(cne: string, moduleId: string) {
-  const response = await fetchWithAuth(`${lhost}/api/absences/module-exam-status/${cne}/${moduleId}`);
+  const response = await fetchWithAuth(
+    `${lhost}/api/absences/module-exam-status/${cne}/${moduleId}`
+  );
   if (!response.ok) throw new Error("Failed to fetch exam status");
   return response.text();
+}
+export async function getStudentByCne(cne: string) {
+  const response = await fetchWithAuth(`${lhost}/api/students/one/${cne}`);
+  if (!response.ok) throw new Error("Failed to fetch student");
+  return response.json();
+}
+export async function getFiliereName(id: number | undefined) {
+  if (id === undefined) throw new Error("Filiere ID is required");
+  console.log("filiere iid", id);
+
+  const response = await fetchWithAuth(`${lhost}/api/filieres/one/${id}`);
+  if (!response.ok) throw new Error("Failed to fetch fileire name");
+  return response.json();
 }

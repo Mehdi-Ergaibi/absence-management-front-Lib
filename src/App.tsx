@@ -9,6 +9,7 @@ import PrivateRoute from "./PrivateRoute";
 import Navbar from "./NavBar";
 import Home from "./Home";
 import { Toaster } from "@/components/ui/toaster";
+import SeeAbsence from "./SeeAbsence";
 
 /* import { useContext } from "react";
 import AuthContext from "./context/AuthContext"; */
@@ -26,6 +27,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/voir-absence" element={<SeeAbsence />}/>
           <Route element={<PrivateRoute />}>
             <Route path="/add-absence" element={<AbsenceForm />} />
             <Route path="/add-proof" element={<AddProof />} />
