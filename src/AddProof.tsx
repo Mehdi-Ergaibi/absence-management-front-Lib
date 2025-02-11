@@ -3,8 +3,6 @@ import { getAbsenceByStudentCne, uploadProof } from "./api";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "./components/ui/card";
@@ -24,7 +22,14 @@ import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
 import { MdCheckCircle } from "react-icons/md";
 import { toast } from "./hooks/use-toast";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 export interface FetchedAbsencs {
   elementName: string;
   startTime: string;
@@ -119,7 +124,7 @@ function AddProof() {
         description: (
           <div className="flex items-center gap-2">
             <MdCheckCircle color="red" />
-            Motif et justificatif sont obligatoires.                                       
+            Motif et justificatif sont obligatoires.
           </div>
         ),
         className: "bg-red-500 text-white",
@@ -173,8 +178,8 @@ function AddProof() {
   };
 
   return (
-    <div className=" mt-10 grid grid-cols-12">
-      <Card className="rounded-2xl shadow-lg col-span-6 max-w-md ml-10">
+    <div className="mt-10 flex justify-center">
+      <Card className="rounded-2xl shadow-lg max-w-md w-full">
         <CardHeader className="-mb-6">
           <CardTitle>Ajouter justificatif</CardTitle>
         </CardHeader>
@@ -204,153 +209,126 @@ function AddProof() {
         </CardContent>
       </Card>
 
-      <div className="overflow-x-auto col-span-6 m-auto">
-        {fetchedAbsences.length != 0 && (
-          <div>
-            <Input
-              type="text"
-              placeholder="Rechercher par élément"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="mb-2"
-            />
-            <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg">
-              <thead className="bg-gray-200">
+      <Dialog
+        open={fetchedAbsences.length !== 0}
+        onOpenChange={() => setFetchedAbsences([])}
+      >
+        <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Résultats des absences</DialogTitle>
+          </DialogHeader>
+
+          <Input
+            type="text"
+            placeholder="Rechercher par élément"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="mb-2"
+          />
+
+          <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg">
+            <thead className="bg-gray-200">
+              <tr>
                 <th className="px-4 py-2 border">Element</th>
                 <th className="px-4 py-2 border">De</th>
                 <th className="px-4 py-2 border">A</th>
                 <th className="px-4 py-2 border">Date</th>
-              </thead>
-              <tbody>
-                {filteredAbsences.map((abs) => (
-                  <tr
-                    key={abs.abscenceId}
-                    onClick={() => handleRowClick(abs)}
-                    className="hover:bg-gray-100 cursor-pointer"
-                  >
-                    <td className="px-4 py-2 border">{abs.elementName}</td>
-                    <td className="px-4 py-2 border">{abs.startTime}</td>
-                    <td className="px-4 py-2 border">{abs.endTime}</td>
-                    <td className="px-4 py-2 border">{abs.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>{" "}
-          </div>
-        )}
-      </div>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAbsences.map((abs) => (
+                <tr
+                  key={abs.abscenceId}
+                  onClick={() => handleRowClick(abs)}
+                  className="hover:bg-gray-100 cursor-pointer"
+                >
+                  <td className="px-4 py-2 border">{abs.elementName}</td>
+                  <td className="px-4 py-2 border">{abs.startTime}</td>
+                  <td className="px-4 py-2 border">{abs.endTime}</td>
+                  <td className="px-4 py-2 border">{abs.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </DialogContent>
+      </Dialog>
 
-      {showPopup && (
-        <Card
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            padding: "20px",
-            background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-            zIndex: 1000,
-          }}
-        >
-          <CardHeader>
-            <CardTitle>Ajouter justificatif</CardTitle>
-            <CardDescription>
+      <Dialog open={showPopup} onOpenChange={setShowPopup}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Ajouter justificatif</DialogTitle>
+            <DialogDescription>
               Absence: {selectedAbsence?.elementName} <br />
               Jour: {selectedAbsence?.date} <br />
               De: {selectedAbsence?.startTime} <br />
               A: {selectedAbsence?.endTime}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form2}>
-              <form className="space-y-8 max-w-3xl mx-auto py-10">
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-6">
-                    <FormField
-                      control={form2.control}
-                      name="motif"
-                      render={() => (
-                        <FormItem>
-                          <FormLabel>Motif</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Maladie"
-                              type="text"
-                              value={motif}
-                              onChange={(e) => setMotif(e.target.value)}
-                            />
-                          </FormControl>
+            </DialogDescription>
+          </DialogHeader>
 
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+          <Form {...form2}>
+            <form className="space-y-8 max-w-3xl mx-auto py-4">
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-6">
+                  <FormField
+                    control={form2.control}
+                    name="motif"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Motif</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Maladie"
+                            type="text"
+                            value={motif}
+                            onChange={(e) => setMotif(e.target.value)}
+                          />
+                        </FormControl>
 
-                  <div className="col-span-6">
-                    <FormField
-                      control={form2.control}
-                      name="justificatif"
-                      render={() => (
-                        <FormItem>
-                          <FormLabel>fichier</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="file"
-                              onChange={(e) =>
-                                setJustificatif(
-                                  e.target.files ? e.target.files[0] : null
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            choisir une image ou Pdf
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </form>
-            </Form>
-          </CardContent>
 
-          {/* <label>
-            Justificatif:
-            <input
-              type="file"
-              onChange={(e) =>
-                setJustificatif(e.target.files ? e.target.files[0] : null)
-              }
-            />
-          </label>
-          <br /> */}
-          <CardFooter>
+                <div className="col-span-6">
+                  <FormField
+                    control={form2.control}
+                    name="justificatif"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>fichier</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            onChange={(e) =>
+                              setJustificatif(
+                                e.target.files ? e.target.files[0] : null
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          choisir une image ou Pdf
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </form>
+          </Form>
+
+          <DialogFooter>
             <Button onClick={handleSubmitProof} className="mr-2">
               Ajouter
             </Button>
-            <Button onClick={() => setShowPopup(false)}>Fermer</Button>
-          </CardFooter>
-        </Card>
-      )}
-      {showPopup && (
-        <div
-          style={{
-            position: "fixed",
-            top: "0",
-            left: "0",
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0, 0, 0, 0.5)",
-            zIndex: 999,
-          }}
-          onClick={() => setShowPopup(false)}
-        />
-      )}
+            <Button variant="outline" onClick={() => setShowPopup(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

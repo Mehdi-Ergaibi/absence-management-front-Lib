@@ -1,4 +1,5 @@
 import { Absence } from "./types/Absence";
+import { FiliereSemestreStats } from "./types/FiliereSemestreStats";
 import { Semestre } from "./types/Semestre";
 
 const lhost = "http://localhost:8080";
@@ -267,4 +268,83 @@ export async function getFiliereName(id: number | undefined) {
   const response = await fetchWithAuth(`${lhost}/api/filieres/one/${id}`);
   if (!response.ok) throw new Error("Failed to fetch fileire name");
   return response.json();
+}
+
+
+/// stats
+
+export async function getTotalAbsences(
+  filiere: string,
+  semestre: string,
+  module: string,
+  element: string
+): Promise<number> {
+  try {
+    const url = `${lhost}/api/statistics/total-absences?` +
+      `filiere=${encodeURIComponent(filiere)}&` +
+      `semestre=${encodeURIComponent(semestre)}&` +
+      `module=${encodeURIComponent(module)}&` +
+      `element=${encodeURIComponent(element)}`;
+    const response = await fetchWithAuth(url);
+    if (!response.ok) {
+      throw new Error("Failed to fetch total absences");
+    }
+    // Assuming the response is a plain number (double) in JSON format.
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching total absences:", error);
+    throw error;
+  }
+}
+
+
+export async function getTop3Absences(): Promise<FiliereSemestreStats[]> {
+  try {
+    const url = `${lhost}/api/statistics/top-3-absences`;
+    const response = await fetchWithAuth(url);
+    if (!response.ok) {
+      throw new Error("Failed to fetch top 3 absences");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching top 3 absences:", error);
+    throw error;
+  }
+}
+
+
+export async function getStudentsWithoutRights(
+  semestre: string
+): Promise<Record<string, number>> {
+  try {
+    const url = `${lhost}/api/statistics/students-without-rights?semestre=${encodeURIComponent(semestre)}`;
+    const response = await fetchWithAuth(url);
+    if (!response.ok) {
+      throw new Error("Failed to fetch students without rights");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching students without rights:", error);
+    throw error;
+  }
+}
+
+
+export async function getAbsencesByWeek(
+  filiere: string,
+  semestre: string
+): Promise<Record<number, number>> {
+  try {
+    const url = `${lhost}/api/statistics/absences-by-week?` +
+      `filiere=${encodeURIComponent(filiere)}&` +
+      `semestre=${encodeURIComponent(semestre)}`;
+    const response = await fetchWithAuth(url);
+    if (!response.ok) {
+      throw new Error("Failed to fetch absences by week");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching absences by week:", error);
+    throw error;
+  }
 }

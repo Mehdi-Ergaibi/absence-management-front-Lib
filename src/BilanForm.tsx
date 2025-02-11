@@ -41,12 +41,18 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { MdCheckCircle } from "react-icons/md";
 import * as XLSX from "xlsx";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 interface StudentBilan {
   cne: string;
   name: string;
   totalDuration: number;
   elementOrModuleName: string;
+  filiere: string;
 }
 
 const formSchema = z.object({
@@ -67,7 +73,9 @@ function BilanForm() {
   );
   const [filieres, setFilieres] = useState<string[]>([]);
   const [students, setStudents] = useState<StudentBilan[]>([]);
+ 
 
+  
   useEffect(() => {
     const loadFilieres = async () => {
       try {
@@ -147,8 +155,8 @@ function BilanForm() {
   };
 
   return (
-    <div className=" mt-10 grid grid-cols-12">
-      <Card className="rounded-2xl shadow-lg col-span-6 max-w-md ml-10">
+    <div>
+      <Card className="rounded-2xl shadow-lg col-span-4 max-w-md ml-10">
         <CardHeader className="-mb-6">
           <CardTitle>
             Bilan des abscemces des etudiants qui n'ont pas le droit de passer
@@ -299,12 +307,14 @@ function BilanForm() {
               <FormField
                 control={form.control}
                 name="afficherPar"
+              
                 render={() => (
-                  <FormItem>
+                  <FormItem className="w-[200px]">
                     <FormLabel>Afficher par</FormLabel>
                     <Select
                       onValueChange={(value) => setType(value)}
                       defaultValue={type}
+                      
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -326,74 +336,28 @@ function BilanForm() {
         </CardContent>
       </Card>
 
-      {/* <form>
-        <div>
-          <label>Semestre:</label>
-          <select
-            onChange={(e) => {
-              const selectedValue = e.target.value as unknown as Semestre;
-              setSelectedSemestre(selectedValue);
-            }}
-            value={selectedSemestre || ""}
-          >
-            <option value="" disabled>
-              Sélectionner un Semestre
-            </option>
-            {semestres.map((sem) => (
-              <option key={sem} value={sem}>
-                {sem}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Filière:</label>
-          <select
-            onChange={(e) => setSelectedFiliere(e.target.value)}
-            value={selectedFiliere || ""}
-          >
-            <option value="" disabled>
-              Sélectionner une Filière
-            </option>
-            {filieres.map((fil, index) => (
-              <option key={index} value={fil}>
-                {fil}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="type">Afficher par : </label>
-          <select
-            id="type"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          >
-            <option value="element">Par Élément</option>
-            <option value="module">Par Module</option>
-          </select>
-        </div>
-      </form> */}
-      {students.length != 0 && (
-        <div className="overflow-x-auto col-span-6 m-auto">
-          <Button
-            onClick={exportToExcel}
-            className="mb-4 px-4 py-2 text-white rounded"
-          >
-            Exporter vers Excel
-          </Button>
-          <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg">
-            {/*         CNE, nom, heures d'abscence, elemet/module
-             */}{" "}
+      <Dialog open={students.length !== 0} onOpenChange={() => setStudents([])}>
+        <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Liste des Étudiants</DialogTitle>
+            <div className="flex justify-start">
+              <Button onClick={exportToExcel} className="mt-4 ">
+                Exporter vers Excel
+              </Button>
+            </div>
+          </DialogHeader>
+          <table className="w-full table-auto border-collapse">
             <thead className="bg-gray-200">
-              <th className="px-4 py-2 border">Cne</th>
-              <th className="px-4 py-2 border">nom</th>
-              <th className="px-4 py-2 border">heure abscence</th>
-              <th className="px-4 py-2 border">{type}</th>
+              <tr>
+                <th className="px-4 py-2 border">CNE</th>
+                <th className="px-4 py-2 border">Nom</th>
+                <th className="px-4 py-2 border">Heures d'absence</th>
+                <th className="px-4 py-2 border">{type}</th>
+              </tr>
             </thead>
             <tbody>
               {students.map((s) => (
-                <tr className="hover:bg-gray-100">
+                <tr key={s.cne} className="hover:bg-gray-100">
                   <td className="px-4 py-2 border">{s.cne}</td>
                   <td className="px-4 py-2 border">{s.name}</td>
                   <td className="px-4 py-2 border">{s.totalDuration} H</td>
@@ -401,9 +365,9 @@ function BilanForm() {
                 </tr>
               ))}
             </tbody>
-          </table>{" "}
-        </div>
-      )}
+          </table>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

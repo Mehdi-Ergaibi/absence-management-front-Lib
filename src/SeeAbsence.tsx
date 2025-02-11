@@ -29,7 +29,12 @@ import {
 import { MdCheckCircle } from "react-icons/md";
 import { Student } from "./types/Student";
 import { Semestre } from "./types/Semestre";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 interface Absence {
   absenceId: string;
   date: string;
@@ -134,32 +139,28 @@ const SeeAbsence = () => {
   };
 
   return (
-    <div className="mt-10 grid grid-cols-12">
-      {/* {
-      student && (
-        <h3>
-          Bonjour {student} {student?.lastName}!
-        </h3>
-      )} */}
-      <Card className="rounded-2xl shadow-lg col-span-6 max-w-md ml-10">
+    <div className="mt-10 flex justify-center">
+      <Card className="rounded-2xl shadow-lg max-w-md w-full">
         <CardHeader>
           <CardTitle>Mes Absences</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form className="space-y-8 max-w-3xl mx-auto py-10">
-              <div className="col-span-4">
+            <form className="space-y-8 max-w-3xl mx-auto py-4">
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="cne"
                   render={() => (
                     <FormItem className="flex flex-col">
                       <FormLabel>CNE: </FormLabel>
-                      <Input
-                        type="text"
-                        value={cne}
-                        onChange={(e) => setCNE(e.target.value)}
-                      />
+                      <FormControl>
+                        <Input
+                          type="text"
+                          value={cne}
+                          onChange={(e) => setCNE(e.target.value)}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
@@ -188,50 +189,81 @@ const SeeAbsence = () => {
                   )}
                 />
               </div>
-              <Button onClick={fetchAbsences}>Voir absence</Button>
-              <Button onClick={fetchAbsencesType} className="ml-3">
-                Durée Absence
-              </Button>
+              <div className="flex gap-3">
+                <Button onClick={fetchAbsences}>Voir absence</Button>
+                <Button onClick={fetchAbsencesType}>Durée Absence</Button>
+              </div>
             </form>
           </Form>
         </CardContent>
       </Card>
 
-      {absences.length > 0 && (
-        <table title="Absences">
-          <thead>
-            <th className="px-4 py-2 border">date</th>
-            <th className="px-4 py-2 border">debut</th>
-            <th className="px-4 py-2 border">Fin</th>
-          </thead>
-          <tbody>
-            {absences.map((abs) => (
-              <tr key={abs.absenceId} className="hover:bg-gray-100">
-                <td className="px-4 py-2 border">{abs.date}</td>
-                <td className="px-4 py-2 border">{abs.startTime}</td>
-                <td className="px-4 py-2 border">{abs.endTime}</td>
+      {/* Absences Dialog */}
+      <Dialog open={absences.length > 0} onOpenChange={() => setAbsences([])}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Liste des Absences</DialogTitle>
+          </DialogHeader>
+          <table className="w-full table-auto border-collapse">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="px-4 py-2 border">Date</th>
+                <th className="px-4 py-2 border">Début</th>
+                <th className="px-4 py-2 border">Fin</th>
               </tr>
-            ))}{" "}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {absences.map((abs) => {
+                return (
+                  <tr key={abs.absenceId} className={`hover:bg-gray-100`}>
+                    <td className="px-4 py-2 border">{abs.date}</td>
+                    <td className="px-4 py-2 border">{abs.startTime}</td>
+                    <td className="px-4 py-2 border">{abs.endTime}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </DialogContent>
+      </Dialog>
 
-      {absenceDetails.length > 0 && (
-        <table title="Détails Absences">
-          <thead>
-            <th className="px-4 py-2 border">type</th>
-            <th className="px-4 py-2 border">Durre</th>
-          </thead>
-          <tbody>
-            {absenceDetails.map((abs) => (
-              <tr key={abs.elementOrModuleName} className="hover:bg-gray-100">
-                <td className="px-4 py-2 border">{abs.elementOrModuleName}</td>
-                <td className="px-4 py-2 border">{abs.totalDuration}</td>
+      {/* Absence Details Dialog */}
+      <Dialog
+        open={absenceDetails.length > 0}
+        onOpenChange={() => setAbsenceDetails([])}
+      >
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Détails des Absences</DialogTitle>
+          </DialogHeader>
+          <table className="w-full table-auto border-collapse">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="px-4 py-2 border">Type</th>
+                <th className="px-4 py-2 border">Durée</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {absenceDetails.map((abs) => (
+                <tr
+                  key={abs.elementOrModuleName}
+                  className={`hover:bg-gray-100 ${
+                    (type === "element" && abs.totalDuration > 6) ||
+                    (type === "module" && abs.totalDuration > 16)
+                      ? "bg-red-100"
+                      : ""
+                  }`}
+                >
+                  <td className="px-4 py-2 border">
+                    {abs.elementOrModuleName}
+                  </td>
+                  <td className="px-4 py-2 border">{abs.totalDuration}h</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

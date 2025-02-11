@@ -11,9 +11,7 @@ import { Semestre } from "./types/Semestre";
 import { Student } from "./types/Student";
 import { Absence } from "./types/Absence";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
-import { Label } from "@radix-ui/react-label";
 import { Input } from "./components/ui/input";
-import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -48,6 +46,15 @@ import {
 
 import { useToast } from "@/hooks/use-toast";
 import { MdCheckCircle } from "react-icons/md";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const formSchema = z.object({
   date: z.coerce.date(),
@@ -261,13 +268,56 @@ function AbsenceForm() {
       prev.includes(cne) ? prev.filter((id) => id !== cne) : [...prev, cne]
     );
   };
+  const formatTimeToLocalTime = (timeString: string) => {
+    if (!timeString) return null;
 
+    const [time, period] = timeString.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+
+    // Convert 12-hour format to 24-hour format
+    if (period === "PM" && hours !== 12) {
+      hours += 12;
+    } else if (period === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    // Ensure 2-digit format for hours and minutes (HH:mm)
+    const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
+
+    return formattedTime; // Correct format for LocalTime
+  };
+  const generateTimeSlots = () => {
+    const times = [];
+    for (let hour = 9; hour <= 19; hour++) {
+      for (let minute of [0, 30]) {
+        const period = hour < 12 ? "AM" : "PM";
+        const displayHour = hour <= 12 ? hour : hour - 12;
+        const timeString = `${displayHour}:${
+          minute === 0 ? "00" : "30"
+        } ${period}`;
+        times.push(timeString);
+      }
+    }
+    return times;
+  };
+
+  const timeSlots = generateTimeSlots();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log(date, startTime, endTime, selectedStudents);
+    //console.log(date, startTime, endTime, selectedStudents);
 
-    if (!date || !startTime || !endTime || selectedStudents.length === 0) {
+    const formattedStartTime = formatTimeToLocalTime(startTime);
+    const formattedEndTime = formatTimeToLocalTime(endTime);
+
+    if (
+      !date ||
+      !formattedStartTime ||
+      !formattedEndTime ||
+      selectedStudents.length === 0
+    ) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -282,7 +332,7 @@ function AbsenceForm() {
       return;
     }
 
-    if (startTime >= endTime) {
+    if (formattedStartTime >= formattedEndTime) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -318,8 +368,8 @@ function AbsenceForm() {
       proof: null,
       student: { cne },
       element: { elementId },
-      startTime,
-      endTime,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
     }));
 
     try {
@@ -348,8 +398,8 @@ function AbsenceForm() {
   };
 
   return (
-    <div className=" mt-10 grid grid-cols-12 gap-1 ">
-      <Card className="rounded-2xl shadow-lg col-span-6 max-w-md ml-10">
+    <div className="mt-10 flex justify-center">
+      <Card className="rounded-2xl shadow-lg w-full max-w-2xl mx-4">
         <CardHeader className="-mb-6">
           <CardTitle>Ajouter abscence</CardTitle>
         </CardHeader>
@@ -371,12 +421,12 @@ function AbsenceForm() {
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "w-[240px] pl-3 text-left font-normal",
+                              "w-full pl-3 text-left font-normal",
                               !date && "text-muted-foreground"
                             )}
                           >
                             {date ? (
-                              format(date, "PPP")
+                              format(date, "PPP", { locale: fr })
                             ) : (
                               <span>Choisir une date</span>
                             )}
@@ -402,54 +452,136 @@ function AbsenceForm() {
               />
 
               <div className="grid grid-cols-12 gap-4">
+                {/* Start Time */}
                 <div className="col-span-6">
                   <FormField
                     control={form.control}
                     name="startTime"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>L'heure de debut</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Choisir l'heure de debut de la seance"
-                            type="time"
-                            id="startTime"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                            step="1800"
-                          />
-                        </FormControl>
-
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>L'heure de début</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  "justify-between",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {startTime || "Choisir l'heure de début"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Rechercher une heure..." />
+                              <CommandList>
+                                <CommandEmpty>
+                                  Aucune heure trouvée.
+                                </CommandEmpty>
+                                <CommandGroup>
+                                  {timeSlots.map((time) => (
+                                    <CommandItem
+                                      key={time}
+                                      value={time}
+                                      onSelect={(selectedTime) => {
+                                        setStartTime(selectedTime);
+                                        form.setValue(
+                                          "startTime",
+                                          selectedTime
+                                        );
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          startTime === time
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {time}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
 
+                {/* End Time */}
                 <div className="col-span-6">
                   <FormField
                     control={form.control}
                     name="endTime"
-                    render={() => (
-                      <FormItem>
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
                         <FormLabel>L'heure de fin</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="choisir L'heure de fin"
-                            type="time"
-                            id="endTime"
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                            step="1800"
-                          />
-                        </FormControl>
-
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  "justify-between",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {endTime || "Choisir l'heure de fin"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Rechercher une heure..." />
+                              <CommandList>
+                                <CommandEmpty>
+                                  Aucune heure trouvée.
+                                </CommandEmpty>
+                                <CommandGroup>
+                                  {timeSlots.map((time) => (
+                                    <CommandItem
+                                      key={time}
+                                      value={time}
+                                      onSelect={(selectedTime) => {
+                                        setEndTime(selectedTime);
+                                        form.setValue("endTime", selectedTime);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          endTime === time
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {time}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
               </div>
+
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-6">
                   <FormField
@@ -465,7 +597,7 @@ function AbsenceForm() {
                                 variant="outline"
                                 role="combobox"
                                 className={cn(
-                                  "w-[200px] justify-between",
+                                  "justify-between",
                                   !field.value && "text-muted-foreground"
                                 )}
                               >
@@ -536,7 +668,7 @@ function AbsenceForm() {
                                 variant="outline"
                                 role="combobox"
                                 className={cn(
-                                  "w-[200px] justify-between",
+                                  "justify-between",
                                   !field.value && "text-muted-foreground"
                                 )}
                               >
@@ -605,8 +737,9 @@ function AbsenceForm() {
                               <Button
                                 variant="outline"
                                 role="combobox"
+                                disabled={!selectedFiliere || !selectedSemestre}
                                 className={cn(
-                                  "w-[200px] justify-between",
+                                  "justify-between",
                                   !field.value && "text-muted-foreground"
                                 )}
                               >
@@ -674,8 +807,9 @@ function AbsenceForm() {
                               <Button
                                 variant="outline"
                                 role="combobox"
+                                disabled={!selectedModule}
                                 className={cn(
-                                  "w-[200px] justify-between",
+                                  "justify-between",
                                   !field.value && "text-muted-foreground"
                                 )}
                               >
@@ -729,60 +863,86 @@ function AbsenceForm() {
                     )}
                   />
                 </div>
+                <div className="flex">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        disabled={!selectedElement}
+                        className="mt-4"
+                      >
+                        Afficher les étudiants
+                      </Button>
+                    </DialogTrigger>
+
+                    <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Sélectionner les étudiants absents
+                        </DialogTitle>
+                      </DialogHeader>
+
+                      <div className="flex-1 overflow-hidden flex flex-col">
+                        <div className="flex items-center space-x-4 mb-3">
+                          <Input
+                            type="text"
+                            placeholder="Rechercher un étudiant..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+
+                        <div className="flex-1 overflow-auto">
+                          <table className="w-full table-auto border-collapse">
+                            <thead className="sticky top-0 bg-background">
+                              <tr className="bg-muted">
+                                <th className="px-4 py-2 border">CNE</th>
+                                <th className="px-4 py-2 border">Nom</th>
+                                <th className="px-4 py-2 border">Prénom</th>
+                                <th className="px-4 py-2 border">Absent</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filterStudents().map((s) => (
+                                <tr key={s.cne} className="hover:bg-muted/50">
+                                  <td className="px-4 py-2 border">{s.cne}</td>
+                                  <td className="px-4 py-2 border">
+                                    {s.firstName}
+                                  </td>
+                                  <td className="px-4 py-2 border">
+                                    {s.lastName}
+                                  </td>
+                                  <td className="px-4 py-2 border text-center">
+                                    <Input
+                                      type="checkbox"
+                                      checked={selectedStudents.includes(s.cne)}
+                                      onChange={() =>
+                                        handleCheckboxChange(s.cne)
+                                      }
+                                    />
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="pt-4 flex justify-end gap-2">
+                          <Button type="button" onClick={handleSubmit}>
+                            Confirmer les absences
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
-      <div className="col-span-6 m-auto">
-        {students.length != 0 && (
-          <div>
-            <div className="flex items-center space-x-4 mb-3">
-              <Label htmlFor="studentSearch" className="text-sm font-medium">
-                Rechercher un étudiant:
-              </Label>
-              <Input
-                type="text"
-                id="studentSearch"
-                placeholder="Nom ou Prénom"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto border-collapse border border-gray-300 rounded-lg">
-                <thead>
-                  <tr className="bg-gray-200">
-                    <th className="px-4 py-2 border">CNE</th>
-                    <th className="px-4 py-2 border">Nom</th>
-                    <th className="px-4 py-2 border">Prénom</th>
-                    <th className="px-4 py-2 border">Absent</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filterStudents().map((s) => (
-                    <tr key={s.cne} className="hover:bg-gray-100">
-                      <td className="px-4 py-2 border">{s.cne}</td>
-                      <td className="px-4 py-2 border">{s.firstName}</td>
-                      <td className="px-4 py-2 border">{s.lastName}</td>
-                      <td className="px-4 py-2 border text-center">
-                        <Input
-                          type="checkbox"
-                          onChange={() => handleCheckboxChange(s.cne)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <Button onClick={handleSubmit} className="mt-3">
-              Soumettre
-            </Button>
-          </div>
-        )}{" "}
-      </div>
+      
     </div>
   );
 }

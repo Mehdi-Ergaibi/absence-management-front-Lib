@@ -14,9 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MdCheckCircle } from "react-icons/md";
 import { toast } from "./hooks/use-toast";
+import { useAuth } from "./context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { setExToken } = useAuth();
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -27,6 +29,7 @@ const Login = () => {
       const token = await login(username, password);
       //console.log('JWT Token:', token);
       localStorage.setItem("jwt", token);
+      setExToken(false);
       navigate("/add-absence");
     } catch (err) {
       toast({
